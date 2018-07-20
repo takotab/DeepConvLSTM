@@ -233,14 +233,14 @@ def process_dataset_file(data, label):
     return data_x, data_y
 
 
-def generate_data(dataset, target_filename, label):
+def generate_data(dataset, target_filename, label = 'locomotion'):
     """Function to read the OPPORTUNITY challenge raw data and process all sensor channels
 
     :param dataset: string
         Path with original OPPORTUNITY zip file
     :param target_filename: string
         Processed file
-    :param label: string, ['gestures' (default), 'locomotion']
+    :param label: string, ['gestures' , 'locomotion'(default)]
         Type of activities to be recognized. The OPPORTUNITY dataset includes several annotations
         to perform
         recognition modes of locomotion/postures and recognition of sporadic gestures.
@@ -275,7 +275,7 @@ def generate_data(dataset, target_filename, label):
     print("Final datasets with size: | train {0} | test {1} | ".format(X_train.shape, X_test.shape))
 
     obj = [(X_train, y_train), (X_test, y_test)]
-    with file(os.path.join(data_dir, target_filename), 'wb') as f:
+    with open(os.path.join(data_dir, target_filename), 'wb') as f:
         cp.dump(obj, f, protocol = cp.HIGHEST_PROTOCOL)
 
 
