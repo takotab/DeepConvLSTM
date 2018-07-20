@@ -1,18 +1,19 @@
 __author__ = 'fjordonez'
 
-import os
-import zipfile
 import argparse
-import numpy as np
-import cPickle as cp
-
+import os
+import pickle as cp
+import zipfile
 from io import BytesIO
+
+import numpy as np
 from pandas import Series
 
 # Hardcoded number of sensor channels employed in the OPPORTUNITY challenge
 NB_SENSOR_CHANNELS = 113
 
-# Hardcoded names of the files defining the OPPORTUNITY challenge data. As named in the original data.
+# Hardcoded names of the files defining the OPPORTUNITY challenge data. As named in the original
+# data.
 OPPORTUNITY_DATA_FILES = ['OpportunityUCIDataset/dataset/S1-Drill.dat',
                           'OpportunityUCIDataset/dataset/S1-ADL1.dat',
                           'OpportunityUCIDataset/dataset/S1-ADL2.dat',
@@ -33,34 +34,35 @@ OPPORTUNITY_DATA_FILES = ['OpportunityUCIDataset/dataset/S1-Drill.dat',
                           'OpportunityUCIDataset/dataset/S3-ADL5.dat'
                           ]
 
-# Hardcoded thresholds to define global maximums and minimums for every one of the 113 sensor channels employed in the
+# Hardcoded thresholds to define global maximums and minimums for every one of the 113 sensor
+# channels employed in the
 # OPPORTUNITY challenge
-NORM_MAX_THRESHOLDS = [3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,   3000,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       3000,   3000,   3000,   10000,  10000,  10000,  1500,   1500,   1500,
-                       250,    25,     200,    5000,   5000,   5000,   5000,   5000,   5000,
-                       10000,  10000,  10000,  10000,  10000,  10000,  250,    250,    25,
-                       200,    5000,   5000,   5000,   5000,   5000,   5000,   10000,  10000,
-                       10000,  10000,  10000,  10000,  250, ]
+NORM_MAX_THRESHOLDS = [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       3000, 3000, 3000, 10000, 10000, 10000, 1500, 1500, 1500,
+                       250, 25, 200, 5000, 5000, 5000, 5000, 5000, 5000,
+                       10000, 10000, 10000, 10000, 10000, 10000, 250, 250, 25,
+                       200, 5000, 5000, 5000, 5000, 5000, 5000, 10000, 10000,
+                       10000, 10000, 10000, 10000, 250, ]
 
-NORM_MIN_THRESHOLDS = [-3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,  -3000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -3000,  -3000,  -3000,  -10000, -10000, -10000, -1000,  -1000,  -1000,
-                       -250,   -100,   -200,   -5000,  -5000,  -5000,  -5000,  -5000,  -5000,
-                       -10000, -10000, -10000, -10000, -10000, -10000, -250,   -250,   -100,
-                       -200,   -5000,  -5000,  -5000,  -5000,  -5000,  -5000,  -10000, -10000,
+NORM_MIN_THRESHOLDS = [-3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000, -3000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -3000, -3000, -3000, -10000, -10000, -10000, -1000, -1000, -1000,
+                       -250, -100, -200, -5000, -5000, -5000, -5000, -5000, -5000,
+                       -10000, -10000, -10000, -10000, -10000, -10000, -250, -250, -100,
+                       -200, -5000, -5000, -5000, -5000, -5000, -5000, -10000, -10000,
                        -10000, -10000, -10000, -10000, -250, ]
 
 
@@ -99,7 +101,7 @@ def normalize(data, max_list, min_list):
     max_list, min_list = np.array(max_list), np.array(min_list)
     diffs = max_list - min_list
     for i in np.arange(data.shape[1]):
-        data[:, i] = (data[:, i]-min_list[i])/diffs[i]
+        data[:, i] = (data[:, i] - min_list[i]) / diffs[i]
     #     Checking the boundaries
     data[data > 1] = 0.99
     data[data < 0] = 0.00
@@ -119,7 +121,7 @@ def divide_x_y(data, label):
 
     data_x = data[:, 1:114]
     if label not in ['locomotion', 'gestures']:
-            raise RuntimeError("Invalid label: '%s'" % label)
+        raise RuntimeError("Invalid label: '%s'" % label)
     if label == 'locomotion':
         data_y = data[:, 114]  # Locomotion label
     elif label == 'gestures':
@@ -171,7 +173,8 @@ def check_data(data_set):
             Path with original OPPORTUNITY zip file
     :return:
     """
-    print 'Checking dataset {0}'.format(data_set)
+    print
+    'Checking dataset {0}'.format(data_set)
     data_dir, data_file = os.path.split(data_set)
     # When a directory is not provided, check if dataset is in the data directory
     if data_dir == "" and not os.path.isfile(data_set):
@@ -181,15 +184,19 @@ def check_data(data_set):
 
     # When dataset not found, try to download it from UCI repository
     if (not os.path.isfile(data_set)) and data_file == 'OpportunityUCIDataset.zip':
-        print '... dataset path {0} not found'.format(data_set)
+        print
+        '... dataset path {0} not found'.format(data_set)
         import urllib
         origin = (
-            'https://archive.ics.uci.edu/ml/machine-learning-databases/00226/OpportunityUCIDataset.zip'
+            'https://archive.ics.uci.edu/ml/machine-learning-databases/00226'
+            '/OpportunityUCIDataset.zip'
         )
         if not os.path.exists(data_dir):
-            print '... creating directory {0}'.format(data_dir)
+            print
+            '... creating directory {0}'.format(data_dir)
             os.makedirs(data_dir)
-        print '... downloading data from {0}'.format(origin)
+        print
+        '... downloading data from {0}'.format(origin)
         urllib.urlretrieve(origin, data_set)
 
     return data_dir
@@ -210,7 +217,7 @@ def process_dataset_file(data, label):
     data = select_columns_opp(data)
 
     # Colums are segmentd into features and labels
-    data_x, data_y =  divide_x_y(data, label)
+    data_x, data_y = divide_x_y(data, label)
     data_y = adjust_idx_labels(data_y, label)
     data_y = data_y.astype(int)
 
@@ -234,7 +241,8 @@ def generate_data(dataset, target_filename, label):
     :param target_filename: string
         Processed file
     :param label: string, ['gestures' (default), 'locomotion']
-        Type of activities to be recognized. The OPPORTUNITY dataset includes several annotations to perform
+        Type of activities to be recognized. The OPPORTUNITY dataset includes several annotations
+        to perform
         recognition modes of locomotion/postures and recognition of sporadic gestures.
     """
 
@@ -244,42 +252,45 @@ def generate_data(dataset, target_filename, label):
     data_y = np.empty((0))
 
     zf = zipfile.ZipFile(dataset)
-    print 'Processing dataset files ...'
+    print(
+            'Processing dataset files ...')
     for filename in OPPORTUNITY_DATA_FILES:
         try:
             data = np.loadtxt(BytesIO(zf.read(filename)))
-            print '... file {0}'.format(filename)
+            print
+            '... file {0}'.format(filename)
             x, y = process_dataset_file(data, label)
             data_x = np.vstack((data_x, x))
             data_y = np.concatenate([data_y, y])
         except KeyError:
-            print 'ERROR: Did not find {0} in zip file'.format(filename)
+            print
+            'ERROR: Did not find {0} in zip file'.format(filename)
 
     # Dataset is segmented into train and test
     nb_training_samples = 557963
     # The first 18 OPPORTUNITY data files define the traning dataset, comprising 557963 samples
-    X_train, y_train = data_x[:nb_training_samples,:], data_y[:nb_training_samples]
-    X_test, y_test = data_x[nb_training_samples:,:], data_y[nb_training_samples:]
+    X_train, y_train = data_x[:nb_training_samples, :], data_y[:nb_training_samples]
+    X_test, y_test = data_x[nb_training_samples:, :], data_y[nb_training_samples:]
 
-    print "Final datasets with size: | train {0} | test {1} | ".format(X_train.shape,X_test.shape)
+    print("Final datasets with size: | train {0} | test {1} | ".format(X_train.shape, X_test.shape))
 
     obj = [(X_train, y_train), (X_test, y_test)]
-    f = file(os.path.join(data_dir, target_filename), 'wb')
-    cp.dump(obj, f, protocol=cp.HIGHEST_PROTOCOL)
-    f.close()
+    with file(os.path.join(data_dir, target_filename), 'wb') as f:
+        cp.dump(obj, f, protocol = cp.HIGHEST_PROTOCOL)
 
 
 def get_args():
     '''This function parses and return arguments passed in'''
     parser = argparse.ArgumentParser(
-        description='Preprocess OPPORTUNITY dataset')
+            description = 'Preprocess OPPORTUNITY dataset')
     # Add arguments
     parser.add_argument(
-        '-i', '--input', type=str, help='OPPORTUNITY zip file', required=True)
+            '-i', '--input', type = str, help = 'OPPORTUNITY zip file', required = True)
     parser.add_argument(
-        '-o', '--output', type=str, help='Processed data file', required=True)
+            '-o', '--output', type = str, help = 'Processed data file', required = True)
     parser.add_argument(
-        '-t', '--task', type=str.lower, help='Type of activities to be recognized', default="gestures", choices = ["gestures", "locomotion"], required=False)
+            '-t', '--task', type = str.lower, help = 'Type of activities to be recognized',
+            default = "gestures", choices = ["gestures", "locomotion"], required = False)
     # Array for all arguments passed to script
     args = parser.parse_args()
     # Assign args to variables
@@ -288,6 +299,7 @@ def get_args():
     label = args.task
     # Return all variable values
     return dataset, target_filename, label
+
 
 if __name__ == '__main__':
 
