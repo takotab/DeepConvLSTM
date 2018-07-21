@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
+import metric
 # import utils
 from .make_model import make_model
 
@@ -42,7 +43,7 @@ def model_fn(features, labels, mode, params):
 
     # Compute evaluation metrics.
 
-    metric_ops = metrics.extra_metrics(labels, predicted_classes)
+    metric_ops = metric.extra_metrics(labels, predicted_classes)
 
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.EstimatorSpec(

@@ -11,12 +11,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
             formatter_class = argparse.ArgumentDefaultsHelpFormatter)
     params = parser.parse_args()
+
     features_train, y_train, features_test, y_test = oppertunity_data.get_data(config)
     params.learning_rate = 0.01
 
     classifier = tf.estimator.Estimator(model_fn = conv_model.model_fn,
                                         model_dir =
-                                        ".trained_models/simple_model_1000x300",
+                                        ".trained_models/conv_model_0.0.1",
                                         params = params
                                         )
     tf.logging.set_verbosity('INFO')
