@@ -31,3 +31,20 @@ def make_model():
         hub.add_signature(inputs = inputs, outputs = outputs)
 
     return hub.create_module_spec(model_fn)
+
+
+def _train(spec):
+    with tf.Graph().as_default():
+        m = hub.Module(spec)
+
+        for name in m.variable_map:
+            print(name)
+
+            # p_embeddings = tf.placeholder(tf.float32)
+
+        with tf.Session() as sess:
+            sess.run([load_embeddings], feed_dict = {p_embeddings: embeddings})
+        m.export(export_path, sess)
+        spec = model.make_model()
+        _train(spec)
+# TODO: use estimator https://www.tensorflow.org/hub/api_docs/python/hub/LatestModuleExporter

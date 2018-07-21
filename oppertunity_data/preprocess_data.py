@@ -254,7 +254,7 @@ def generate_data(dataset, target_filename, label = 'locomotion'):
     zf = zipfile.ZipFile(dataset)
     print(
             'Processing dataset files ...')
-    for filename in OPPORTUNITY_DATA_FILES:
+    for i, filename in enumerate(OPPORTUNITY_DATA_FILES):
         try:
             data = np.loadtxt(BytesIO(zf.read(filename)))
             print
@@ -265,6 +265,7 @@ def generate_data(dataset, target_filename, label = 'locomotion'):
         except KeyError:
             print
             'ERROR: Did not find {0} in zip file'.format(filename)
+        print(f"done {i}/{len(OPPORTUNITY_DATA_FILES)}")
 
     # Dataset is segmented into train and test
     nb_training_samples = 557963
@@ -275,12 +276,17 @@ def generate_data(dataset, target_filename, label = 'locomotion'):
     print("Final datasets with size: | train {0} | test {1} | ".format(X_train.shape, X_test.shape))
 
     obj = [(X_train, y_train), (X_test, y_test)]
-    with open(os.path.join(data_dir, target_filename), 'wb') as f:
+    if not os.path.isdir("dataset"):
+        os.mkdir("dataset")
+
+    with open(target_filename, 'wb+') as f:
         cp.dump(obj, f, protocol = cp.HIGHEST_PROTOCOL)
 
 
 def get_args():
-    '''This function parses and return arguments passed in'''
+    '''
+    This function parses and return arguments passed in
+    '''
     parser = argparse.ArgumentParser(
             description = 'Preprocess OPPORTUNITY dataset')
     # Add arguments
