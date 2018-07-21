@@ -76,13 +76,13 @@ def select_columns_opp(data):
     """
 
     #                     included-excluded
-    features_delete = np.arange(46, 50)
-    features_delete = np.concatenate([features_delete, np.arange(59, 63)])
-    features_delete = np.concatenate([features_delete, np.arange(72, 76)])
-    features_delete = np.concatenate([features_delete, np.arange(85, 89)])
-    features_delete = np.concatenate([features_delete, np.arange(98, 102)])
-    features_delete = np.concatenate([features_delete, np.arange(134, 243)])
-    features_delete = np.concatenate([features_delete, np.arange(244, 249)])
+    features_delete = np.arange(46, 50)  # BACK Quaternion1
+    features_delete = np.concatenate([features_delete, np.arange(59, 63)])  # RUA Quaternion1
+    features_delete = np.concatenate([features_delete, np.arange(72, 76)])  # RLA Quaternion1
+    features_delete = np.concatenate([features_delete, np.arange(85, 89)])  # LUA Quaternion1
+    features_delete = np.concatenate([features_delete, np.arange(98, 102)])  # LLA Quaternion1
+    features_delete = np.concatenate([features_delete, np.arange(134, 243)])  # object Accelerometer
+    features_delete = np.concatenate([features_delete, np.arange(244, 249)])  # labels
     return np.delete(data, features_delete, 1)
 
 
