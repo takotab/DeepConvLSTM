@@ -275,12 +275,14 @@ def generate_data(dataset, target_filename, label = 'locomotion'):
     print("Final datasets with size: | train {0} | test {1} | ".format(X_train.shape, X_test.shape))
 
     obj = [(X_train, y_train), (X_test, y_test)]
-    with open(os.path.join(data_dir, target_filename), 'wb') as f:
+    with open(os.path.join(data_dir, target_filename), 'wb+') as f:
         cp.dump(obj, f, protocol = cp.HIGHEST_PROTOCOL)
 
 
 def get_args():
-    '''This function parses and return arguments passed in'''
+    '''
+    This function parses and return arguments passed in
+    '''
     parser = argparse.ArgumentParser(
             description = 'Preprocess OPPORTUNITY dataset')
     # Add arguments

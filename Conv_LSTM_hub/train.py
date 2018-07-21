@@ -44,6 +44,7 @@ def train(config, dataset = 'Opportunity'):
     X_test = X_test.reshape((-1, 1, config.SLIDING_WINDOW_LENGTH, config.NB_SENSOR_CHANNELS))
     spec = model.make_model()
     _train(spec)
+    # TODO: use estimator https://www.tensorflow.org/hub/api_docs/python/hub/LatestModuleExporter
 
 
 def _train(spec):
