@@ -28,6 +28,7 @@ if __name__ == "__main__":
     input_fn = tf.estimator.inputs.numpy_input_fn(x = features_train,
                                                   y = y_train,
                                                   shuffle = True,
+                                                  batch_size = 32
                                                   )
     input_fn_test = tf.estimator.inputs.numpy_input_fn(x = features_test,
                                                        y = y_test,

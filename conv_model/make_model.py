@@ -4,8 +4,17 @@ from . import utils  # pylint : ignore
 
 
 def make_model(deep_t, params, mode):
-    # Makes the custom model.
-    # Design is the same as showcased on https://www.tensorflow.org/tutorials/layers
+    """ Makes the custom model.
+
+    Args:
+        deep_t:
+        params: Not used yet
+        mode: tf.estimator.ModeKeys
+
+    Returns:
+
+    """
+
     X = utils.batch_norm(deep_t, mode = mode)
 
     X = utils.conv_2d(X, 5, "1")
@@ -13,9 +22,9 @@ def make_model(deep_t, params, mode):
     #     inputs=X, rate=params.dropout, training=mode == tf.estimator.ModeKeys.TRAIN)
     X = utils.conv_2d(X, 10, "2")
 
-    X = utils.conv_2d(X, 20, "3")
+    X = utils.conv_2d(X, 20, "3")  # shape: [-1, 1, 3, 20]
 
-    X = tf.reshape(X, [-1, 7680])
+    X = tf.reshape(X, [-1, 60])
 
     with tf.variable_scope("fc_1"):
         X = tf.layers.dense(inputs = X, units = 1024, activation = tf.nn.relu)
