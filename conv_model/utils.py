@@ -8,7 +8,7 @@ def conv_2d(X, channels, name = ""):
         conv = tf.layers.conv2d(
                 inputs = X,
                 filters = channels,
-                kernel_size = [7, 7],
+                kernel_size = [3, 3],
                 padding = "same",
                 activation = tf.nn.relu)
         # RELU Layer

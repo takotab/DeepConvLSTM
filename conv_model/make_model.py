@@ -1,42 +1,36 @@
 import tensorflow as tf
 
-from . import utils  # pylint : ignore
+from .resnetblock import Resnet_layer
 
 
-def make_model(deep_t, params, mode):
-    """ Makes the custom model.
+def make_model(deep_t, is_training):
+    """
 
     Args:
         deep_t:
-        params: Not used yet
-        mode: tf.estimator.ModeKeys
+        is_training:
 
     Returns:
 
     """
+    with tf.variable_scope("Resnet_layer_1"):
+        x = Resnet_layer(deep_t, 3, [3, 3, 5], is_training)
 
-    X = utils.batch_norm(deep_t, mode = mode)
+    x = tf.tile(x, (1, 1, 1, 2))
+    x = tf.layers.max_pooling2d(x,
+                                2,
+                                2,
+                                )
 
-    X = utils.conv_2d(X, 5, "1")
-    # X = tf.layers.dropout(
-    #     inputs=X, rate=params.dropout, training=mode == tf.estimator.ModeKeys.TRAIN)
-    X = utils.conv_2d(X, 10, "2")
+    with tf.variable_scope("Resnet_layer_2"):
+        x = Resnet_layer(x, 5, [3, 1, 10], is_training)
 
-    X = utils.conv_2d(X, 20, "3")  # shape: [-1, 1, 3, 20]
+    x = tf.layers.max_pooling2d(x,
+                                2,
+                                2,
+                                )
+    x = tf.layers.flatten(x)
 
-    X = tf.reshape(X, [-1, 60])
-
-    with tf.variable_scope("fc_1"):
-        X = tf.layers.dense(inputs = X, units = 1024, activation = tf.nn.relu)
-        X = tf.layers.dropout(inputs = X,
-                              rate = 0.5,
-                              training = mode == tf.estimator.ModeKeys.TRAIN,
-                              )
-
-    with tf.variable_scope("fc_2"):
-        logits = tf.layers.dense(inputs = X,
-                                 units = 5,
-                                 activation = tf.nn.relu,
-                                 )
-
+    x = tf.layers.dense(x, 100)
+    logits = tf.layers.dense(x, 5)
     return logits

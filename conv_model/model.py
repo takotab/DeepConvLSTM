@@ -2,8 +2,10 @@ import numpy as np
 import tensorflow as tf
 
 import metric
-# import utils
 from .make_model import make_model
+
+
+# import utils
 
 
 def model_fn(features, labels, mode, params):
@@ -11,8 +13,7 @@ def model_fn(features, labels, mode, params):
 
     Args:
       features: A dict of feature_column w/:
-            * "Deep": (batch_size, 28*28), np.float32
-            * "Wide": (batch_size,  extra_wide_features), np.float32
+            * "windows": (batch_size, 24* 113), np.float32
       labels: (batch_size, 1), np.int32
       mode: tf.estimator.ModeKeys.[TRAIN, EVAL, PREDICT]
       params: a Dictionary-like of configuration parameters
@@ -22,11 +23,13 @@ def model_fn(features, labels, mode, params):
     """
 
     deep_t = tf.feature_column.input_layer(
-            features, tf.feature_column.numeric_column('windows'))
+            features,
+            tf.feature_column.numeric_column('windows'))
     deep_t = tf.reshape(
             deep_t, shape = (-1, 1, 24, 113))
-    # deep_t = tf.print(deep_t, [deep_t.shape])
-    logits = make_model(deep_t, params, mode)
+
+    is_training = tf.estimator.ModeKeys.TRAIN == mode
+    logits = make_model(deep_t, is_training)
 
     predicted_classes = tf.argmax(logits, -1)
     predictions = {
