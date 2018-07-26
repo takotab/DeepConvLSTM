@@ -119,4 +119,4 @@ pyvenv.cfg
 pip-selfcheck.json
 *.zip
 
-/.trained_models/
+/trained_models/

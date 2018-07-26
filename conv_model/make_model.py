@@ -3,7 +3,7 @@ import tensorflow as tf
 from .resnetblock import Resnet_layer
 
 
-def make_model(deep_t, is_training):
+def make_model(deep_t, is_training, num_labels = 5):
     """
 
     Args:
@@ -32,5 +32,5 @@ def make_model(deep_t, is_training):
     x = tf.layers.flatten(x)
 
     x = tf.layers.dense(x, 100)
-    logits = tf.layers.dense(x, 5)
+    logits = tf.layers.dense(x, num_labels)
     return logits

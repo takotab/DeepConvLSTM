@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     classifier = tf.estimator.Estimator(model_fn = conv_model.model_fn,
                                         model_dir =
-                                        ".trained_models/resnet_model_0.0.1",
+                                        "trained_models/resnet_model_0.0.2",
                                         params = params
                                         )
     tf.logging.set_verbosity('INFO')

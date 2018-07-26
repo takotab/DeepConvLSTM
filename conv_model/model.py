@@ -26,7 +26,7 @@ def model_fn(features, labels, mode, params):
             features,
             tf.feature_column.numeric_column('windows'))
     deep_t = tf.reshape(
-            deep_t, shape = (-1, 1, 24, 113))
+            deep_t, shape = (-1, 24, 113, 1))
 
     is_training = tf.estimator.ModeKeys.TRAIN == mode
     logits = make_model(deep_t, is_training)
