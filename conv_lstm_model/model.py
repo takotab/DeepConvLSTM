@@ -1,50 +1,23 @@
 import tensorflow as tf
-import tensorflow_hub as hub
 
-import config
-
-
-def make_model():
-    """
-    https://www.tensorflow.org/hub/creating
-    https://github.com/tensorflow/hub/blob/r0.1/examples/text_embeddings/export.py
-
-    Returns:
-        A module spec object used for constructing a TF-Hub module.
-    """
-
-    def model_fn():
-        inputs = tf.placeholder(dtype = tf.float32, shape = [None, 1, config.SLIDING_WINDOW_LENGTH,
-                                                             config.NB_SENSOR_CHANNELS])
-        concat = tf.reshape(inputs,
-                            (-1, config.SLIDING_WINDOW_LENGTH * config.NB_SENSOR_CHANNELS))
-        layer1 = tf.layers.fully_connected(concat, 200)
-        layer2 = tf.layers.fully_connected(layer1, 100)
-
-        logits = tf.layers.fully_connected(layer2, 18)
-        y = tf.nn.softmax(
-                logits,
-                )
-
-        outputs = dict(default = y, hidden_activations = layer2)
-        # Add default signature.
-        hub.add_signature(inputs = inputs, outputs = outputs)
-
-    return hub.create_module_spec(model_fn)
+from conv_model.resnetblock import Resnet_layer
 
 
-def _train(spec):
-    with tf.Graph().as_default():
-        m = hub.Module(spec)
+def model(deep_t, is_training, num_labels = 5):
+    with tf.variable_scope("Resnet_layer_1"):
+        x = Resnet_layer(deep_t, 3, [1, 3, 5], is_training)
 
-        for name in m.variable_map:
-            print(name)
+    x = tf.tile(x, (1, 1, 1, 2))
 
-            # p_embeddings = tf.placeholder(tf.float32)
+    with tf.variable_scope("Resnet_layer_2"):
+        x = Resnet_layer(x, 5, [1, 5, 10], is_training)
 
-        with tf.Session() as sess:
-            sess.run([load_embeddings], feed_dict = {p_embeddings: embeddings})
-        m.export(export_path, sess)
-        spec = model.make_model()
-        _train(spec)
-# TODO: use estimator https://www.tensorflow.org/hub/api_docs/python/hub/LatestModuleExporter
+    x = tf.reshape(x, [-1, deep_t.shape[1], 10 * deep_t.shape[2]])
+    # TODO: insert dropoutlayer
+    # input must be a 3D tensor with shape (batch_size, timesteps, input_dim)
+    x = tf.keras.layers.LSTM(128,
+                             return_sequences = True)(x)
+    logits = tf.keras.layers.LSTM(num_labels,
+                                  return_sequences = False)(x)
+
+    return logits

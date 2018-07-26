@@ -23,7 +23,7 @@ def Resnet_layer(input_tensor, kernel_size, filters, is_training = False):
 
     x = tf.keras.layers.Conv2D(filter_1, (1, 1))(input_tensor)
     x = tf.keras.layers.BatchNormalization()(x, training = is_training)
-    x = tf.keras.layers.Conv2D(filter_2, kernel_size, padding = 'same')(x)
+    x = tf.keras.layers.Conv2D(filter_2, (kernel_size, 1), padding = 'same')(x)
     x = tf.keras.layers.BatchNormalization()(x, training = is_training)
     x = tf.keras.layers.Conv2D(filter_3, (1, 1))(x)
     x = tf.keras.layers.BatchNormalization()(x, training = is_training)

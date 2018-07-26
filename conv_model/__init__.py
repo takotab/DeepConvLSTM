@@ -1,1 +1,1 @@
-from .model import model_fn
+from .make_estimator_fn import model_fn

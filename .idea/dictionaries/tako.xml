@@ -5,6 +5,7 @@
       <w>dataset</w>
       <w>logits</w>
       <w>resnet</w>
+      <w>timesteps</w>
     </words>
   </dictionary>
 </component>

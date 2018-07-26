@@ -1,64 +1,37 @@
-import numpy as np
 import tensorflow as tf
 
-import metric
-from .make_model import make_model
+from .resnetblock import Resnet_layer
 
 
-# import utils
-
-
-def model_fn(features, labels, mode, params):
-    """Builds the graph, the train operation, and the metric operations
+def model(deep_t, is_training, num_labels = 5):
+    """ This is the actual resnet/conv model
 
     Args:
-      features: A dict of feature_column w/:
-            * "windows": (batch_size, 24* 113), np.float32
-      labels: (batch_size, 1), np.int32
-      mode: tf.estimator.ModeKeys.[TRAIN, EVAL, PREDICT]
-      params: a Dictionary-like of configuration parameters
+        deep_t:
+        is_training:
 
     Returns:
-      tf.estimator.EstimatorSpec
+
     """
+    with tf.variable_scope("Resnet_layer_1"):
+        x = Resnet_layer(deep_t, (3, 1), [3, 5, 5], is_training)
 
-    deep_t = tf.feature_column.input_layer(
-            features,
-            tf.feature_column.numeric_column('windows'))
-    deep_t = tf.reshape(
-            deep_t, shape = (-1, 24, 113, 1))
+    x = tf.tile(x, (1, 1, 1, 2))
+    x = tf.layers.max_pooling2d(x,
+                                2,
+                                2,
+                                )
 
-    is_training = tf.estimator.ModeKeys.TRAIN == mode
-    logits = make_model(deep_t, is_training)
+    with tf.variable_scope("Resnet_layer_2"):
+        x = Resnet_layer(x, (5, 1), [3, 5, 10], is_training)
 
-    predicted_classes = tf.argmax(logits, -1)
-    predictions = {
-        'class_ids'    : predicted_classes[:, tf.newaxis],
-        'probabilities': tf.nn.softmax(logits),
-        'logits'       : logits,
-        }
-    if mode == tf.estimator.ModeKeys.PREDICT:
+    x = tf.layers.max_pooling2d(x,
+                                2,
+                                2,
+                                )
 
-        return tf.estimator.EstimatorSpec(mode, predictions = predictions)
+    x = tf.layers.flatten(x)
 
-    # Compute loss.
-    loss = tf.losses.sparse_softmax_cross_entropy(labels = labels, logits = logits)
-
-    # Compute evaluation metrics.
-
-    metric_ops = metric.extra_metrics(labels, predicted_classes)
-
-    if mode == tf.estimator.ModeKeys.EVAL:
-        return tf.estimator.EstimatorSpec(
-                mode, loss = loss, eval_metric_ops = metric_ops, predictions = predictions)
-
-    # Create training op.
-    assert mode == tf.estimator.ModeKeys.TRAIN
-
-    train_op = tf.train.AdamOptimizer(learning_rate = params.learning_rate).minimize(
-            loss, global_step = tf.train.get_global_step())
-
-    print("Trainable variables", np.sum(
-            [np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
-
-    return tf.estimator.EstimatorSpec(mode, loss = loss, train_op = train_op)
+    x = tf.layers.dense(x, 100)
+    logits = tf.layers.dense(x, num_labels)
+    return logits

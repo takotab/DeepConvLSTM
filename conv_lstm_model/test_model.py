@@ -2,7 +2,6 @@ import pytest
 import tensorflow as tf
 
 from .model import model
-from .resnetblock import Resnet_layer
 
 tfe = tf.contrib.eager
 
@@ -12,21 +11,6 @@ _sizes = [(2, 10, 10, 1),
           (32, 10, 10, 2),
           (32, 25, 25, 8),
           ]
-
-
-@pytest.mark.parametrize("sizes", _sizes)
-@pytest.mark.parametrize("filter_3", [10,
-                                      2,
-                                      3,
-                                      ])
-def test_Resnet_layer(sizes, filter_3):
-    x = tf.random_normal(sizes)
-    if x.shape[-1] == filter_3 or x.shape[-1] == 1:
-        x = Resnet_layer(x, 5, [3, 1, filter_3], False)
-        assert len(x.shape) == 4
-    else:
-        with pytest.raises(AssertionError):
-            x = Resnet_layer(x, 5, [3, 1, filter_3], False)
 
 
 @pytest.mark.parametrize("sizes", _sizes)
